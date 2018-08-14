@@ -149,11 +149,11 @@ def NextSession(event, context):
 
     if item:
         logger.info(item)
+        session_short_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%b %d, %Y, %H:%M')
         session_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%B %d at %H:%M')
-        session_short_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%M %d, %Y, %H:%M')
         content = 'Next session for %s is.  %s, on %s, in %s' % (speaker, session_name, session_date, session_location)
-        display_content = '%s\r%s\r%s' % (session_name, session_short_date, session_location)
-        display_title = 'Next session for %s' % (speaker)
+        display_content = '%s\n%s\n%s' % (session_name, session_short_date, session_location)
+        display_title = '%s\'s Next Session' % (speaker)
     else:
         content = 'I could not find any future sessions.'
 
