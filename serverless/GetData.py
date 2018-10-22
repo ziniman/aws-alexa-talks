@@ -122,12 +122,12 @@ def NextSession(event, context):
 
     interfaces = event['context']['System']['device']['supportedInterfaces']
 
-    if interfaces['Display']:
-        display_template = interfaces['Display']['templateVersion']
-        display_markup = interfaces['Display']['markupVersion']
+    #if interfaces['Display']:
+        #display_template = interfaces['Display']['templateVersion']
+        #display_markup = interfaces['Display']['markupVersion']
 
-    logger.info('Dispaly Template: ' + display_template)
-    logger.info('Markup Version: ' + display_markup)
+    #logger.info('Dispaly Template: ' + display_template)
+    #logger.info('Markup Version: ' + display_markup)
 
     lookup_val = time.strftime("%d-%m-%Y")
 
