@@ -1,0 +1,7 @@
+.DS_Store
+serverless/parse.py
+serverless/.serverless
+parse.py
+*.csv
+html/*
+

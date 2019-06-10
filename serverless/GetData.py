@@ -87,6 +87,32 @@ def read_cache(filename):
     except Exception as e:
         logger.warning("Failed to read cache file %s. %s" % (filename, e))
 
+def alexa_response(content, display_title, display_content, end_session = True):
+    logger.info('Responding with: ' + content)
+    if not (display_content): display_content = content
+    return {
+        'version': '1.0',
+        'sessionAttributes': {},
+        'response': {
+          'outputSpeech': {
+            'type': 'PlainText',
+            'text': content
+          },
+          'card': {
+            'type': 'Simple',
+            'title': display_title,
+            'content': display_content
+          },
+          "reprompt": {
+              "outputSpeech": {
+                  "type": "PlainText",
+                  "text": "Hope to see you there!"
+              }
+          },
+          'shouldEndSession': end_session
+        }
+    }
+
 def NextSession(event, context):
     #return event
     logger.info('Received event: ' + json.dumps(event))
@@ -94,29 +120,10 @@ def NextSession(event, context):
     if event['request']['type'] == "LaunchRequest":
         content = "Thanks for Using this Skill. You can ask for the next session."
         logger.info('Responding with: ' + content)
-        return {
-              'version': '1.0',
-              'sessionAttributes': {},
-              'response': {
-                'outputSpeech': {
-                  'type': 'PlainText',
-                  'text': content
-                },
-                'card': {
-                  'type': 'Simple',
-                  'title': 'Welcome',
-                  'content': content
-                },
-                "reprompt": {
-                    "outputSpeech": {
-                        "type": "PlainText",
-                        "text": "Hope to see you there!"
-                    }
-                },
-                'shouldEndSession': False
-              }
-        }
-
+        return alexa_response(content, 'Welcome', content, False)
+    elif event['request']['type'] == "SessionEndedRequest":
+        content = "Hummm... See you soon";
+        return alexa_response(content, 'Goodbye', content)
     else:
         intent = event['request']['intent']['name']
 
@@ -129,54 +136,46 @@ def NextSession(event, context):
     #logger.info('Dispaly Template: ' + display_template)
     #logger.info('Markup Version: ' + display_markup)
 
-    lookup_val = time.strftime("%d-%m-%Y")
+    if (intent=='GetNextTalk'):
+        lookup_val = time.strftime("%d-%m-%Y")
 
-    #if intent == 'GetNextTalk':
+        #if intent == 'GetNextTalk':
 
-    #TZ Adjustments - Basic TZ is UTC
-    current_ts = int(time.time()) + (60*60*3)
+        #TZ Adjustments - Basic TZ is UTC
+        current_ts = int(time.time()) + (60*60*3)
 
-    next_session = get_session()
-    logger.info(next_session)
-    item = None
+        next_session = get_session()
+        logger.info(next_session)
+        item = None
 
-    if next_session:
-        for item in next_session:
-            speaker = item['speaker']
-            session_name = item['topic']
-            session_date = item['datetime']
-            session_location = item['location']
+        if next_session:
+            for item in next_session:
+                speaker = item['speaker']
+                session_name = item['topic']
+                session_date = item['datetime']
+                session_location = item['location']
 
-    if item:
-        logger.info(item)
-        session_short_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%b %d, %Y, %H:%M')
-        session_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%B %d at %H:%M')
-        content = 'Next session for %s is.  %s, on %s, in %s' % (speaker, session_name, session_date, session_location)
-        display_content = '%s\n%s\n%s' % (session_name, session_short_date, session_location)
-        display_title = '%s\'s Next Session' % (speaker)
+        if item:
+            logger.info(item)
+            session_short_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%b %d, %Y, %H:%M')
+            session_date = datetime.strptime(session_date,'%Y-%m-%d %H:%M').strftime('%B %d at %H:%M')
+            content = 'Next session for %s is.  %s, on %s, in %s' % (speaker, session_name, session_date, session_location)
+            display_content = '%s\n%s\n%s' % (session_name, session_short_date, session_location)
+            display_title = '%s\'s Next Session' % (speaker)
+        else:
+            content = 'I could not find any future sessions.'
+        return alexa_response(content, display_title, display_content)
+    elif (intent=='GetSpecificRange'):
+        content = 'This functionality is not available yet. Check out the next version. You can ask for the next session'
+        return alexa_response(content, 'Under Constraction', content, False)
     else:
-        content = 'I could not find any future sessions.'
-
-    logger.info('Responding with: ' + content)
-    return {
-          'version': '1.0',
-          'sessionAttributes': {},
-          'response': {
-            'outputSpeech': {
-              'type': 'PlainText',
-              'text': content
-            },
-            'card': {
-              'type': 'Simple',
-              'title': display_title,
-              'content': display_content
-            },
-            "reprompt": {
-                "outputSpeech": {
-                    "type": "PlainText",
-                    "text": "Hope to see you there!"
-                }
-            },
-            'shouldEndSession': True
-          }
-    }
+        if (intent=='AMAZON.HelpIntent'):
+            content = 'This skill can provide information regarding the next session of Boaz Ziniman - A Technical Evangelist from AWS Tel Aviv'
+            display_content = 'This skill can provide information regarding the next session of Boaz Ziniman - A Technical Evangelist from AWS Tel Aviv'
+            display_title = 'Need some help?'
+            return alexa_response(content, display_title, display_content, False)
+        else:
+            content = 'Leaving so early? See you next time.'
+            display_content = 'Leaving so early?\nSee you next time.'
+            display_title = ':-('
+            return alexa_response(content, display_title, display_content)
